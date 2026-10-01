@@ -41,20 +41,27 @@ const navItems = [
 
 function isNavItemActive(navId: string, activeSection: SectionId): boolean {
   if (navId === "home") return activeSection === "home";
+
   if (navId === "about") return activeSection === "about";
-  if (navId === "work")
+
+  if (navId === "work") {
     return (
       activeSection === "projects" ||
       activeSection === "services" ||
       activeSection === "skills"
     );
-  if (navId === "experience")
+  }
+
+  if (navId === "experience") {
     return (
       activeSection === "experience" ||
       activeSection === "education" ||
       activeSection === "certifications"
     );
+  }
+
   if (navId === "contact") return activeSection === "contact";
+
   return false;
 }
 
@@ -168,6 +175,7 @@ const projects = [
       "A focused workspace to plan, track, and manage projects efficiently.",
     stack: ["React", "PostgreSQL", "HTML", "Tailwind"],
     kind: "planner",
+    github: "https://github.com/ankitha014/WorkSprint_Hub",
   },
   {
     number: "02",
@@ -176,6 +184,7 @@ const projects = [
       "An interactive 3D solar system explorer built to make space exploration engaging.",
     stack: ["React", "TypeScript", "Three.js"],
     kind: "space",
+    github: "https://github.com/ankitha014/ORBITA",
   },
   {
     number: "03",
@@ -184,6 +193,7 @@ const projects = [
       "Automated invoice generation, processing, and tracking with a smart workflow.",
     stack: ["HTML", "CSS", "JavaScript"],
     kind: "invoice",
+    github: "https://github.com/ankitha014/invocraft-project",
   },
 ] as const;
 
@@ -266,13 +276,14 @@ function ProjectPreview({
 export function Portfolio() {
   const [active, setActive] = useState<SectionId>("home");
 
-  // Typewriter state
-  const [twText, setTwText]   = useState("");        // chars revealed so far
-  const [twDone, setTwDone]   = useState(false);     // typing finished
-  const [twCursor, setTwCursor] = useState(true);    // cursor visible
+  // ── Typewriter state ─────────────────────────────────────
+  const [twText, setTwText] = useState("");
+  const [twDone, setTwDone] = useState(false);
+  const [twCursor, setTwCursor] = useState(true);
 
   const heroRef = useRef<HTMLElement | null>(null);
 
+  // ── Section observers + scroll effects ───────────────────
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -285,8 +296,9 @@ export function Portfolio() {
 
         if (visible) {
           setActive(
-            (visible.target as HTMLElement)
-              .dataset["section"] as SectionId
+            (visible.target as HTMLElement).dataset[
+              "section"
+            ] as SectionId
           );
         }
       },
@@ -316,67 +328,100 @@ export function Portfolio() {
       .querySelectorAll(".scroll-reveal")
       .forEach((el) => revealObserver.observe(el));
 
-    // ── Split-text heading & word reveal system ────────────
-    const wrapWords = (text: string, startIndex: number): [string, number] => {
-      const words = text.trim().split(/\s+/).filter(Boolean);
+    // ── Split-text heading & word reveal system ─────────────
+
+    const wrapWords = (
+      text: string,
+      startIndex: number
+    ): [string, number] => {
+      const words = text
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
       const html = words
         .map(
-          (w, i) =>
-            `<span class="w-mask"><span class="w-inner" style="--wi:${startIndex + i}">${w}</span></span>`
+          (word, index) =>
+            `<span class="w-mask"><span class="w-inner" style="--wi:${
+              startIndex + index
+            }">${word}</span></span>`
         )
         .join(" ");
+
       return [html, startIndex + words.length];
     };
 
-    // Hero h1 (WEB DEVELOPER.) line-reveal
-    const heroSub = document.querySelector<HTMLElement>(".hero-copy h1");
-    if (heroSub && !heroSub.querySelector(".hero-line-inner")) {
-      heroSub.innerHTML = `
-        <div class="hero-line hero-line-3">
-          <span class="hero-line-inner">WEB DEVELOPER.</span>
-        </div>
-      `;
-    }
+    /*
+     * IMPORTANT:
+     *
+     * WEB DEVELOPER is intentionally NOT modified here.
+     *
+     * It is rendered directly by React below.
+     */
 
-    // Section h2 headings (plain text OR text-with-br)
+    // ── Section h2 headings ─────────────────────────────────
+
     document
       .querySelectorAll<HTMLElement>(
         ".about-copy h2, .compact-heading h2, .section-heading h2, .skills-title h2, .contact-lead h2"
       )
       .forEach((el) => {
-        if (el.querySelector(".w-mask")) return; // already split
+        if (el.querySelector(".w-mask")) return;
+
         const hasBr = el.querySelector("br");
+
         if (hasBr) {
           let wordIndex = 0;
           const nodes = Array.from(el.childNodes);
           let newHtml = "";
+
           for (const node of nodes) {
             if (node.nodeType === Node.TEXT_NODE) {
               const text = node.textContent ?? "";
+
               if (text.trim()) {
-                const [html, nextIndex] = wrapWords(text, wordIndex);
+                const [html, nextIndex] = wrapWords(
+                  text,
+                  wordIndex
+                );
+
                 newHtml += html + " ";
                 wordIndex = nextIndex;
               }
-            } else if ((node as Element).tagName === "BR") {
+            } else if (
+              (node as Element).tagName === "BR"
+            ) {
               newHtml += "<br />";
             }
           }
+
           el.innerHTML = newHtml;
         } else {
-          const [html] = wrapWords(el.textContent ?? "", 0);
+          const [html] = wrapWords(
+            el.textContent ?? "",
+            0
+          );
+
           el.innerHTML = html;
         }
       });
 
-    // Project h3 titles
+    // ── Project h3 titles ───────────────────────────────────
+
     document
       .querySelectorAll<HTMLElement>(".project-info h3")
       .forEach((el) => {
         if (el.querySelector(".w-mask")) return;
-        const [html] = wrapWords(el.textContent ?? "", 0);
+
+        const [html] = wrapWords(
+          el.textContent ?? "",
+          0
+        );
+
         el.innerHTML = html;
       });
+
+    // ── Page scroll variable ────────────────────────────────
 
     let raf = 0;
 
@@ -398,18 +443,23 @@ export function Portfolio() {
     return () => {
       observer.disconnect();
       revealObserver.disconnect();
+
       window.removeEventListener("scroll", onScroll);
+
       cancelAnimationFrame(raf);
     };
   }, []);
 
-  // ── Typewriter effect (React-state driven) ──────────────
+  // ── Typewriter effect ────────────────────────────────────
   useEffect(() => {
     const FULL_TEXT = "HEY THERE, I AM";
-    const CHAR_DELAY = 70; // ms per character
+    const CHAR_DELAY = 70;
 
-    // Respect reduced-motion: show everything immediately
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      window
+        .matchMedia("(prefers-reduced-motion: reduce)")
+        .matches
+    ) {
       setTwText(FULL_TEXT);
       setTwDone(true);
       setTwCursor(false);
@@ -417,20 +467,29 @@ export function Portfolio() {
     }
 
     let index = 0;
-    const timer = setInterval(() => {
+
+    const timer = window.setInterval(() => {
       index += 1;
+
       setTwText(FULL_TEXT.slice(0, index));
+
       if (index >= FULL_TEXT.length) {
-        clearInterval(timer);
+        window.clearInterval(timer);
+
         setTwDone(true);
-        // Hide cursor 1 second after typing completes
-        setTimeout(() => setTwCursor(false), 1000);
+
+        window.setTimeout(() => {
+          setTwCursor(false);
+        }, 1000);
       }
     }, CHAR_DELAY);
 
-    return () => clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+    };
   }, []);
 
+  // ── Keep active navigation item visible ──────────────────
   useEffect(() => {
     document
       .querySelector<HTMLElement>(
@@ -443,6 +502,7 @@ export function Portfolio() {
       });
   }, [active]);
 
+  // ── Hero mouse movement ──────────────────────────────────
   const onHeroMove = (
     event: MouseEvent<HTMLElement>
   ) => {
@@ -450,10 +510,14 @@ export function Portfolio() {
       event.currentTarget.getBoundingClientRect();
 
     const x =
-      (event.clientX - rect.left) / rect.width - 0.5;
+      (event.clientX - rect.left) /
+        rect.width -
+      0.5;
 
     const y =
-      (event.clientY - rect.top) / rect.height - 0.5;
+      (event.clientY - rect.top) /
+        rect.height -
+      0.5;
 
     event.currentTarget.style.setProperty(
       "--mouse-x",
@@ -485,8 +549,17 @@ export function Portfolio() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              className={isNavItemActive(item.id, active) ? "active" : ""}
-              onClick={() => scrollTo(item.targetSection)}
+              className={
+                isNavItemActive(
+                  item.id,
+                  active
+                )
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                scrollTo(item.targetSection)
+              }
             >
               {item.label}
             </button>
@@ -518,37 +591,51 @@ export function Portfolio() {
           }
           className="hero-grid"
           onMouseMove={onHeroMove}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.setProperty(
+          onMouseLeave={(event) => {
+            event.currentTarget.style.setProperty(
               "--mouse-x",
               "0px"
             );
 
-            e.currentTarget.style.setProperty(
+            event.currentTarget.style.setProperty(
               "--mouse-y",
               "0px"
             );
           }}
         >
           <div className="hero-copy">
-            {/* ── Hero heading: typewriter-driven ── */}
-            <p className="hero-title" aria-label="HEY THERE, I AM ANKITHA!">
-              {/* Line 1: types out character by character */}
-              <span className="hero-line hero-line-1" aria-hidden="true">
+            {/* ── Hero heading ─────────────────────────── */}
+
+            <p
+              className="hero-title"
+              aria-label="HEY THERE, I AM ANKITHA!"
+            >
+              {/* Line 1: typewriter */}
+              <span
+                className="hero-line hero-line-1"
+                aria-hidden="true"
+              >
                 <span className="hero-line-inner">
                   {twText}
+
                   {twCursor && (
                     <span
-                      className={`hero-cursor${twDone ? " done" : ""}`}
+                      className={`hero-cursor${
+                        twDone ? " done" : ""
+                      }`}
                       aria-hidden="true"
                     />
                   )}
                 </span>
               </span>
 
-              {/* Line 2: ANKITHA! — fades in after line 1 finishes typing */}
+              {/* Line 2: ANKITHA */}
               <span
-                className={`hero-line hero-line-2${twDone ? " tw-visible" : ""}`}
+                className={`hero-line hero-line-2${
+                  twDone
+                    ? " tw-visible"
+                    : ""
+                }`}
                 aria-hidden="true"
               >
                 <span className="hero-line-inner">
@@ -558,17 +645,26 @@ export function Portfolio() {
               </span>
             </p>
 
-            <h1>WEB DEVELOPER.</h1>
+            {/* WEB DEVELOPER is rendered directly by React. */}
+            <h1 className="hero-line hero-line-3">
+              <span className="hero-line-inner">
+                WEB DEVELOPER.
+              </span>
+            </h1>
 
             <p className="hero-intro">
-              I build modern, interactive websites with a focus on frontend development and thoughtful UI.
+              I build modern, interactive websites
+              with a focus on frontend development
+              and thoughtful UI.
             </p>
 
             <div className="hero-actions">
               <Button
                 variant="portfolio"
                 size="portfolio"
-                onClick={() => scrollTo("projects")}
+                onClick={() =>
+                  scrollTo("projects")
+                }
               >
                 VIEW MY WORK ↗
               </Button>
@@ -576,7 +672,9 @@ export function Portfolio() {
               <Button
                 variant="portfolioSecondary"
                 size="portfolio"
-                onClick={() => scrollTo("contact")}
+                onClick={() =>
+                  scrollTo("contact")
+                }
               >
                 LET'S TALK →
               </Button>
@@ -649,8 +747,6 @@ export function Portfolio() {
               engaging.
             </p>
 
-            
-
             <p className="exploring">
               Currently exploring:{" "}
               <span>
@@ -687,7 +783,10 @@ export function Portfolio() {
 
         <div className="service-grid">
           {services.map(
-            ([number, title, description], index) => (
+            (
+              [number, title, description],
+              index
+            ) => (
               <article
                 className="service-card scroll-reveal"
                 key={title}
@@ -730,59 +829,60 @@ export function Portfolio() {
         </div>
 
         <div className="project-list">
-          {projects.map((project, index) => (
-            <article
-              className="project-row scroll-reveal"
-              key={project.title}
-              style={
-                {
-                  "--delay": `${index * 100}ms`,
-                } as CSSProperties
-              }
-            >
-              <div className="project-number">
-                {project.number}
-              </div>
-
-              <div className="project-info">
-                <h3>{project.title}</h3>
-
-                <p>{project.description}</p>
-
-                <ul>
-                  {project.stack.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-
-                <div className="project-links">
-                  <a
-                    href="https://github.com/ankitha014"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Live demo
-                    <ArrowUpRight />
-                  </a>
-
-                  <a
-                    href="https://github.com/ankitha014"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    GitHub
-                    <Github />
-                  </a>
+          {projects.map(
+            (project, index) => (
+              <article
+                className="project-row scroll-reveal"
+                key={project.title}
+                style={
+                  {
+                    "--delay": `${index * 100}ms`,
+                  } as CSSProperties
+                }
+              >
+                <div className="project-number">
+                  {project.number}
                 </div>
-              </div>
 
-              <div className="project-preview">
-                <ProjectPreview
-                  kind={project.kind}
-                />
-              </div>
-            </article>
-          ))}
+                <div className="project-info">
+                  <h3>{project.title}</h3>
+
+                  <p>{project.description}</p>
+
+                  <ul>
+                    {project.stack.map(
+                      (item) => (
+                        <li key={item}>
+                          {item}
+                        </li>
+                      )
+                    )}
+                  </ul>
+
+                  <div className="project-links">
+                    <a
+                      className="project-github-cta"
+                      href={project.github}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`View ${project.title} on GitHub`}
+                    >
+                      <span>VIEW ON GITHUB</span>
+                      <Github />
+                      <ArrowUpRight />
+                    </a>
+                  </div>
+
+                </div>
+
+                <div className="project-preview">
+                  <ProjectPreview
+                    kind={project.kind}
+                  />
+                </div>
+              </article>
+            )
+          )}
         </div>
       </SectionFrame>
 
@@ -841,19 +941,21 @@ export function Portfolio() {
                 "Tools",
                 "Git · GitHub · Figma · VS Code",
               ],
-            ].map(([no, label, value]) => (
-              <div
-                className="skill-row"
-                key={no}
-              >
-                <span>{no}</span>
+            ].map(
+              ([no, label, value]) => (
+                <div
+                  className="skill-row"
+                  key={no}
+                >
+                  <span>{no}</span>
 
-                <div>
-                  <h3>{label}</h3>
-                  <p>{value}</p>
+                  <div>
+                    <h3>{label}</h3>
+                    <p>{value}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
       </SectionFrame>
@@ -864,7 +966,9 @@ export function Portfolio() {
 
       <SectionFrame
         id="experience"
-        active={active === "experience"}
+        active={
+          active === "experience"
+        }
         className="experience-section"
       >
         <div className="compact-heading scroll-reveal">
@@ -881,49 +985,60 @@ export function Portfolio() {
         </div>
 
         <div className="experience-timeline">
-          {experiences.map((item, index) => (
-            <article
-              className="experience-item scroll-reveal"
-              key={`${item.organization}-${item.role}`}
-              style={
-                {
-                  "--delay": `${index * 70}ms`,
-                } as CSSProperties
-              }
-            >
-              <div className="experience-meta">
-                <span
-                  className={`experience-type ${
-                    item.type === "Internship"
-                      ? "internship"
-                      : "simulation"
-                  }`}
-                >
-                  {item.type}
-                </span>
+          {experiences.map(
+            (item, index) => (
+              <article
+                className="experience-item scroll-reveal"
+                key={`${item.organization}-${item.role}`}
+                style={
+                  {
+                    "--delay": `${index * 70}ms`,
+                  } as CSSProperties
+                }
+              >
+                <div className="experience-meta">
+                  <span
+                    className={`experience-type ${
+                      item.type === "Internship"
+                        ? "internship"
+                        : "simulation"
+                    }`}
+                  >
+                    {item.type}
+                  </span>
 
-                {"date" in item && item.date ? (
-                  <time>{item.date}</time>
-                ) : null}
-              </div>
+                  {"date" in item &&
+                  item.date ? (
+                    <time>
+                      {item.date}
+                    </time>
+                  ) : null}
+                </div>
 
-              <div className="experience-copy">
-                <h3>{item.role}</h3>
+                <div className="experience-copy">
+                  <h3>{item.role}</h3>
 
-                <p className="experience-org">
-                  {item.organization}
-                </p>
+                  <p className="experience-org">
+                    {item.organization}
+                  </p>
 
-                <p>{item.description}</p>
+                  <p>
+                    {item.description}
+                  </p>
 
-                <ul>
-                  {item.tags.map((tag) => (
-                    <li key={tag}>{tag}</li>
-                  ))}
-                </ul>
-              </div>
-            </article>
-          ))}
+                  <ul>
+                    {item.tags.map(
+                      (tag) => (
+                        <li key={tag}>
+                          {tag}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              </article>
+            )
+          )}
         </div>
       </SectionFrame>
 
@@ -933,7 +1048,9 @@ export function Portfolio() {
 
       <SectionFrame
         id="education"
-        active={active === "education"}
+        active={
+          active === "education"
+        }
         className="education-section"
       >
         <div className="compact-heading scroll-reveal">
@@ -951,7 +1068,9 @@ export function Portfolio() {
 
         <div className="education-timeline scroll-reveal">
           <article>
-            <time>2023 — 2026</time>
+            <time>
+              2023 — 2026
+            </time>
 
             <div>
               <h3>
@@ -963,27 +1082,41 @@ export function Portfolio() {
                 Science, Arts &amp; Commerce
               </p>
 
-              <strong>CGPA · 9.01</strong>
+              <strong>
+                CGPA · 9.01
+              </strong>
 
               <ul>
-                <li>AI &amp; Data Science</li>
-                <li>Web Development</li>
-                <li>Software Development</li>
+                <li>
+                  AI &amp; Data Science
+                </li>
+                <li>
+                  Web Development
+                </li>
+                <li>
+                  Software Development
+                </li>
               </ul>
             </div>
           </article>
 
           <article>
-            <time>2021 — 2023</time>
+            <time>
+              2021 — 2023
+            </time>
 
             <div>
-              <h3>Pre-University — PCMC</h3>
+              <h3>
+                Pre-University — PCMC
+              </h3>
 
               <p>
                 Seshadripuram Main PU College
               </p>
 
-              <strong>86%</strong>
+              <strong>
+                86%
+              </strong>
             </div>
           </article>
         </div>
@@ -995,7 +1128,9 @@ export function Portfolio() {
 
       <SectionFrame
         id="certifications"
-        active={active === "certifications"}
+        active={
+          active === "certifications"
+        }
         className="certifications-section"
       >
         <div className="compact-heading scroll-reveal">
@@ -1012,7 +1147,10 @@ export function Portfolio() {
 
         <div className="certification-groups">
           {certificationGroups.map(
-            (group, groupIndex) => (
+            (
+              group,
+              groupIndex
+            ) => (
               <section
                 className="certification-group scroll-reveal"
                 key={group.title}
@@ -1022,15 +1160,22 @@ export function Portfolio() {
                   } as CSSProperties
                 }
               >
-                <h3>{group.title}</h3>
+                <h3>
+                  {group.title}
+                </h3>
 
                 <div>
                   {group.items.map(
                     ([name, provider]) => (
                       <article key={name}>
                         <span>
-                          <strong>{name}</strong>
-                          <small>{provider}</small>
+                          <strong>
+                            {name}
+                          </strong>
+
+                          <small>
+                            {provider}
+                          </small>
                         </span>
                       </article>
                     )
@@ -1048,7 +1193,9 @@ export function Portfolio() {
 
       <SectionFrame
         id="contact"
-        active={active === "contact"}
+        active={
+          active === "contact"
+        }
         className="contact-section"
       >
         <div className="contact-layout scroll-reveal">
